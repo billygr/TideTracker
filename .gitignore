@@ -1,6 +1,7 @@
 data.txt
 config.py
 images/error.png
+images/screen_output.png
 .DS_Store
 .idea
 ***/__pycache__
