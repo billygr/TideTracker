@@ -10,6 +10,7 @@
 ****************************************************************
 """
 
+import logging
 import config
 import sys
 import os
@@ -22,13 +23,16 @@ import datetime as dt
 from astral import sun, LocationInfo, moon
 
 sys.path.append('lib')
-from waveshare_epd import epd7in5_V2
+#from waveshare_epd import epd7in5_V2
+from waveshare_epd import epd7in5
 from PIL import Image, ImageDraw, ImageFont
 
 picdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'images')
 icondir = os.path.join(picdir, 'icon')
 fontdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'font')
 moondir = os.path.join(picdir, 'moon')
+
+logging.basicConfig(level=logging.DEBUG)
 
 '''
 ****************************************************************
@@ -55,6 +59,7 @@ TIMEZONE = config.timezone
 BASE_URL = 'http://api.openweathermap.org/data/2.5/onecall?'
 URL = BASE_URL + 'lat=' + LATITUDE + '&lon=' + LONGITUDE + '&units=' + UNITS + '&appid=' + API_KEY
 
+print (URL)
 '''
 ****************************************************************
 
@@ -207,7 +212,8 @@ Main Loop
 
 # Initialize and clear screen
 print('Initializing and clearing screen.')
-epd = epd7in5_V2.EPD()  # Create object for display functions
+#epd = epd7in5_V2.EPD()  # Create object for display functions
+epd = epd7in5.EPD()  # Create object for display functions
 epd.init()
 epd.Clear()
 
@@ -226,6 +232,8 @@ while True:
     # get humidity
     humidity = current['humidity']
     # get pressure
+    pressure = current['pressure']
+    # get wind speed
     wind = current['wind_speed']
     # get description
     weather = current['weather']
@@ -246,13 +254,13 @@ while True:
 
     # Set strings to be printed to screen
     string_location = LOCATION
-    string_temp_current = format(temp_current, '.0f') + u'\N{DEGREE SIGN}F'
-    string_feels_like = 'Feels like: ' + format(feels_like, '.0f') + u'\N{DEGREE SIGN}F'
+    string_temp_current = format(temp_current, '.0f') + u'\N{DEGREE SIGN}C'
+    string_feels_like = 'Feels like: ' + format(feels_like, '.0f') + u'\N{DEGREE SIGN}C'
     string_humidity = 'Humidity: ' + str(humidity) + '%'
-    string_wind = 'Wind: ' + format(wind, '.1f') + ' MPH'
+    string_wind = 'Wind: ' + format(wind, '.1f') + ' m/s'
     string_report = 'Now: ' + report.title()
-    string_temp_max = 'High: ' + format(temp_max, '>.0f') + u'\N{DEGREE SIGN}F'
-    string_temp_min = 'Low:  ' + format(temp_min, '>.0f') + u'\N{DEGREE SIGN}F'
+    string_temp_max = 'High: ' + format(temp_max, '>.0f') + u'\N{DEGREE SIGN}C'
+    string_temp_min = 'Low:  ' + format(temp_min, '>.0f') + u'\N{DEGREE SIGN}C'
     string_precip_percent = 'Precip: ' + str(format(daily_precip_percent, '.0f')) + '%'
 
     # get min and max temp
@@ -274,22 +282,22 @@ while True:
     nx_nx_daily_precip_percent = nx_nx_daily_precip_float * 100
 
     # Tomorrow Forcast Strings
-    nx_day_high = 'High: ' + format(nx_temp_max, '>.0f') + u'\N{DEGREE SIGN}F'
-    nx_day_low = 'Low: ' + format(nx_temp_min, '>.0f') + u'\N{DEGREE SIGN}F'
+    nx_day_high = 'High: ' + format(nx_temp_max, '>.0f') + u'\N{DEGREE SIGN}C'
+    nx_day_low = 'Low: ' + format(nx_temp_min, '>.0f') + u'\N{DEGREE SIGN}C'
     nx_precip_percent = 'Precip: ' + str(format(nx_daily_precip_percent, '.0f')) + '%'
     nx_weather_icon = daily[1]['weather']
     nx_icon = nx_weather_icon[0]['icon']
 
     # Overmorrow Forcast Strings
-    nx_nx_day_high = 'High: ' + format(nx_nx_temp_max, '>.0f') + u'\N{DEGREE SIGN}F'
-    nx_nx_day_low = 'Low: ' + format(nx_nx_temp_min, '>.0f') + u'\N{DEGREE SIGN}F'
+    nx_nx_day_high = 'High: ' + format(nx_nx_temp_max, '>.0f') + u'\N{DEGREE SIGN}C'
+    nx_nx_day_low = 'Low: ' + format(nx_nx_temp_min, '>.0f') + u'\N{DEGREE SIGN}C'
     nx_nx_precip_percent = 'Precip: ' + str(format(nx_nx_daily_precip_percent, '.0f')) + '%'
     nx_nx_weather_icon = daily[2]['weather']
     nx_nx_icon = nx_nx_weather_icon[0]['icon']
 
     # Last updated time
     now = dt.datetime.now()
-    current_time = now.strftime("%H:%M")
+    current_time = now.strftime("%d/%m/%Y, %H:%M")
     last_update_string = 'Last Updated: ' + current_time
 
     # Tide Data
@@ -322,10 +330,11 @@ while True:
     draw.text((250, 55), string_temp_current, font=font35, fill=black)
     y = 100
     draw.text((250, y), string_feels_like, font=font15, fill=black)
-    draw.text((250, y + 20), string_wind, font=font15, fill=black)
-    draw.text((250, y + 40), string_precip_percent, font=font15, fill=black)
-    draw.text((250, y + 60), string_temp_max, font=font15, fill=black)
-    draw.text((250, y + 80), string_temp_min, font=font15, fill=black)
+    draw.text((250, y + 20), string_humidity, font=font15, fill=black)
+    draw.text((250, y + 40), string_wind, font=font15, fill=black)
+    draw.text((250, y + 60), string_precip_percent, font=font15, fill=black)
+    draw.text((250, y + 80), string_temp_max, font=font15, fill=black)
+    draw.text((250, y + 100), string_temp_min, font=font15, fill=black)
 
     draw.text((125, 218), last_update_string, font=font15, fill=black)
 
@@ -366,7 +375,15 @@ while True:
     h = 240
     draw.line((25, h, 775, h), fill='black', width=3)
     # Daily tide times
-    draw.text((30, 260), "Today's Tide", font=font22, fill=black)
+    draw.text((30, 260), "Today's News font 22", font=font22, fill=black)
+    draw.text((30, 300), "Line 1 font 15", font=font15, fill=black)
+    draw.text((30, 320), "Line 2 font 15", font=font15, fill=black)
+    draw.text((30, 340), "Line 3 font 15", font=font15, fill=black)
+    draw.text((30, 360), "Line 4 font 15", font=font15, fill=black)
+    draw.text((30, 380), "Line 5 font 15", font=font15, fill=black)
+    draw.text((30, 400), "Line 6 font 15", font=font15, fill=black)
+    draw.text((30, 420), "Line 7 font 15", font=font15, fill=black)
+    draw.text((30, 440), "Line 8 font 15", font=font15, fill=black)
 
     # Lunar Phase Info
     current_phase = moon.phase(now)
@@ -397,6 +414,10 @@ while True:
     # Save the image for display as PNG
     screen_output_file = os.path.join(picdir, 'screen_output.png')
     template.save(screen_output_file)
+
+    resized_img = template.resize((640,384), Image.ANTIALIAS)
+    screen_output_file = os.path.join(picdir, 'screen_output_resized.png')
+    resized_img.save(screen_output_file)
     # Close the template file
     template.close()
     write_to_screen(screen_output_file, 600)
