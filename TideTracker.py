@@ -71,6 +71,7 @@ Functions and defined variables
 
 # define funciton for writing image and sleeping for specified time
 def write_to_screen(image, sleep_seconds):
+    epd.init()  # Re-Initialize screen
     print('Writing to screen.')  # for debugging
     # Create new blank image template matching screen resolution
     h_image = Image.new('1', (epd.width, epd.height), 255)
@@ -214,9 +215,9 @@ Main Loop
 print('Initializing and clearing screen.')
 #epd = epd7in5_V2.EPD()  # Create object for display functions
 epd = epd7in5.EPD()  # Create object for display functions
-epd.init()
+epd.init() # Initialize e-Paper or wakeup e-Paper from sleep mode
 epd.Clear()
-
+epd.sleep()  # Put screen to sleep to prevent damage in case the below code failes (happened and it burned the display)
 
 while True:
     # Get weather data
