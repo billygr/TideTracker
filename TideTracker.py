@@ -71,7 +71,6 @@ Functions and defined variables
 
 # define funciton for writing image and sleeping for specified time
 def write_to_screen(image, sleep_seconds):
-    epd.init()  # Re-Initialize screen
     print('Writing to screen.')  # for debugging
     # Create new blank image template matching screen resolution
     h_image = Image.new('1', (epd.width, epd.height), 255)
@@ -80,6 +79,8 @@ def write_to_screen(image, sleep_seconds):
     # Initialize the drawing context with template as background
     h_image.paste(screen_output_file, (0, 0))
     epd.display(epd.getbuffer(h_image))
+    # Close the open file
+    screen_output_file.close()
     # Sleep
     epd.sleep()  # Put screen to sleep to prevent damage
     print('Sleeping for ' + str(sleep_seconds) + '.')
@@ -129,7 +130,8 @@ def getWeather(URL):
         print('Connection to Open Weather successful.')
         # get data in jason format
         data = response.json()
-
+        # Close the connection
+        response.close()
         with open('data.txt', 'w') as outfile:
             json.dump(data, outfile)
 
@@ -217,9 +219,10 @@ print('Initializing and clearing screen.')
 epd = epd7in5.EPD()  # Create object for display functions
 epd.init() # Initialize e-Paper or wakeup e-Paper from sleep mode
 epd.Clear()
-epd.sleep()  # Put screen to sleep to prevent damage in case the below code failes (happened and it burned the display)
 
+# Find a way to put screen to sleep to prevent damage in case the below code failes (happened and it burned the display)
 while True:
+    # The display is on and powered !!!
     # Get weather data
     data = getWeather(URL)
 
@@ -301,10 +304,6 @@ while True:
     current_time = now.strftime("%d/%m/%Y, %H:%M")
     last_update_string = 'Last Updated: ' + current_time
 
-    # Tide Data
-    # Get water level
-    # TODO Insert function for Tide data
-
     # Open template file
     template = Image.open(os.path.join(picdir, 'template.png'))
     # Initialize the drawing context with template as background
@@ -315,6 +314,7 @@ while True:
     icon_file = icon_code + '.png'
     icon_image = Image.open(os.path.join(icondir, icon_file))
     icon_image = icon_image.resize((130, 130))
+    icon_image.close
     template.paste(icon_image, (50, 50))
 
     draw.text((125, 10), LOCATION, font=font35, fill=black)
@@ -345,6 +345,7 @@ while True:
     icon_image = Image.open(os.path.join(icondir, icon_file))
     icon_image = icon_image.resize((130, 130))
     template.paste(icon_image, (435, 50))
+    icon_image.close
     draw.text((450, 20), 'Tomorrow', font=font22, fill=black)
     draw.text((415, 180), nx_day_high, font=font15, fill=black)
     draw.text((515, 180), nx_day_low, font=font15, fill=black)
@@ -359,6 +360,7 @@ while True:
     icon_image = Image.open(os.path.join(icondir, icon_file))
     icon_image = icon_image.resize((130, 130))
     template.paste(icon_image, (635, 50))
+    icon_image.close
     draw.text((center, 20), nx_nx_day_of_week, font=font22, fill=black)
     draw.text((615, 180), nx_nx_day_high, font=font15, fill=black)
     draw.text((715, 180), nx_nx_day_low, font=font15, fill=black)
@@ -367,10 +369,6 @@ while True:
     ## Dividing lines
     draw.line((400, 10, 400, 220), fill='black', width=3)
     draw.line((600, 20, 600, 210), fill='black', width=2)
-
-    # Tide Info
-    # Graph
-    # TODO Insert function to graph the tide
 
     # Large horizontal dividing line
     h = 240
@@ -405,6 +403,7 @@ while True:
     draw.line((600, 250, 600, 460), fill='black', width=2)
     # Add moon phase image
     template.paste(moon_image, (625, 265), moon_image)
+    moon_image.close
     draw.text((640, 255), "Lunar Phase", font=font22, fill=black)
     w, h = draw.textsize(current_phase_name, font=font15)
     center = int(700 - (w / 2))
@@ -421,4 +420,5 @@ while True:
     resized_img.save(screen_output_file)
     # Close the template file
     template.close()
+    resized_img.close()
     write_to_screen(screen_output_file, 600)
