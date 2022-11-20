@@ -1,7 +1,5 @@
 # Optional, displayed on top left
 location = ''
-# NOAA Station Code for tide data
-station_id = #######
 
 # For weather data
 # Create Account on openweathermap.com and get API key
