@@ -30,7 +30,7 @@ icondir = os.path.join(picdir, 'icon')
 fontdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'font')
 moondir = os.path.join(picdir, 'moon')
 
-FORMAT = '%(asctime)s %(levelname)s - %(message)s'
+FORMAT = "[%(asctime)s %(filename)s->%(funcName)s():%(lineno)s]%(levelname)s: %(message)s"
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 
 '''
@@ -67,8 +67,13 @@ Functions and defined variables
 '''
 
 
-# define funciton for writing image and sleeping for specified time
-def write_to_screen(image, sleep_seconds):
+def sleep(sleep_seconds):
+    print('Sleeping for ' + str(sleep_seconds) + ' seconds.')
+    time.sleep(sleep_seconds)  # Determines refresh rate on data
+    epd.init()  # Re-Initialize screen
+
+# define function for writing image
+def write_to_screen(image):
     print('Writing to screen.')  # for debugging
     # Create new blank image template matching screen resolution
     h_image = Image.new('1', (epd.width, epd.height), 255)
@@ -81,9 +86,6 @@ def write_to_screen(image, sleep_seconds):
     screen_output_file.close()
     # Sleep
     epd.sleep()  # Put screen to sleep to prevent damage
-    print('Sleeping for ' + str(sleep_seconds) + '.')
-    time.sleep(sleep_seconds)  # Determines refresh rate on data
-    epd.init()  # Re-Initialize screen
 
 
 # define function for displaying error
@@ -409,14 +411,16 @@ while True:
     draw.text((635, 420), string_sunrise, font=font20, fill=black)
     draw.text((635, 440), string_sunset, font=font20, fill=black)
 
-    # Save the image for display as PNG
+    # Save the image template for display as PNG
     screen_output_file = os.path.join(picdir, 'screen_output.png')
     template.save(screen_output_file)
 
     resized_img = template.resize((640,384), Image.ANTIALIAS)
     screen_output_file = os.path.join(picdir, 'screen_output_resized.png')
     resized_img.save(screen_output_file)
+
     # Close the template file
     template.close()
-    resized_img.close()
-    write_to_screen(screen_output_file, 600)
+    write_to_screen(screen_output_file)
+    sleep(600)
+    epd.init()  # Re-Initialize screen
