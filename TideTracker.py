@@ -15,8 +15,6 @@ import config
 import sys
 import os
 import time
-import math
-import decimal
 import requests
 import json
 import datetime as dt
@@ -32,7 +30,8 @@ icondir = os.path.join(picdir, 'icon')
 fontdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'font')
 moondir = os.path.join(picdir, 'moon')
 
-logging.basicConfig(level=logging.DEBUG)
+FORMAT = '%(asctime)s %(levelname)s - %(message)s'
+logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 
 '''
 ****************************************************************
@@ -59,7 +58,6 @@ TIMEZONE = config.timezone
 BASE_URL = 'http://api.openweathermap.org/data/2.5/onecall?'
 URL = BASE_URL + 'lat=' + LATITUDE + '&lon=' + LONGITUDE + '&units=' + UNITS + '&appid=' + API_KEY
 
-print (URL)
 '''
 ****************************************************************
 
@@ -99,7 +97,7 @@ def display_error(error_source):
     draw.text((100, 150), error_source + ' ERROR', font=font50, fill=black)
     draw.text((100, 300), 'Retrying in 30 seconds', font=font22, fill=black)
     current_time = dt.datetime.now().strftime('%H:%M')
-    draw.text((300, 365), 'Last Refresh: ' + str(current_time), font=font50, fill=black)
+    draw.text((300, 365), 'Last Refresh: ' + str(current_time), font=font22, fill=black)
     # Save the error image
     error_image_file = 'error.png'
     error_image.save(os.path.join(picdir, error_image_file))
