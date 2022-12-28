@@ -23,7 +23,7 @@ from astral import sun, LocationInfo, moon
 sys.path.append('lib')
 #from waveshare_epd import epd7in5_V2
 from waveshare_epd import epd7in5
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 picdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'images')
 icondir = os.path.join(picdir, 'icon')
@@ -75,10 +75,19 @@ def sleep(sleep_seconds):
 # define function for writing image
 def write_to_screen(image):
     print('Writing to screen.')  # for debugging
+
+    # Disaply a black image then a white then the actual to prevent burning
+    h_image = Image.new('1', (epd.width, epd.height), black)
+    epd.display(epd.getbuffer(h_image))
+
+    h_image = Image.new('1', (epd.width, epd.height), white)
+    epd.display(epd.getbuffer(h_image))
+
     # Create new blank image template matching screen resolution
     h_image = Image.new('1', (epd.width, epd.height), 255)
+
     # Open the template
-    screen_output_file = Image.open(os.path.join(picdir, image))
+    screen_output_file = Image.open(image)
     # Initialize the drawing context with template as background
     h_image.paste(screen_output_file, (0, 0))
     epd.display(epd.getbuffer(h_image))
@@ -86,7 +95,6 @@ def write_to_screen(image):
     screen_output_file.close()
     # Sleep
     epd.sleep()  # Put screen to sleep to prevent damage
-
 
 # define function for displaying error
 def display_error(error_source):
@@ -102,11 +110,12 @@ def display_error(error_source):
     draw.text((300, 365), 'Last Refresh: ' + str(current_time), font=font22, fill=black)
     # Save the error image
     error_image_file = 'error.png'
-    error_image.save(os.path.join(picdir, error_image_file))
+    error_image.save(error_image_file)
     # Close error image
     error_image.close()
     # Write error to screen
-    write_to_screen(error_image_file, 30)
+    write_to_screen(error_image_file)
+    sleep(30)
 
 
 # define function for getting weather data
@@ -412,15 +421,17 @@ while True:
     draw.text((635, 440), string_sunset, font=font20, fill=black)
 
     # Save the image template for display as PNG
-    screen_output_file = os.path.join(picdir, 'screen_output.png')
-    template.save(screen_output_file)
+    template.save('screen_output.png')
 
     resized_img = template.resize((640,384), Image.ANTIALIAS)
-    screen_output_file = os.path.join(picdir, 'screen_output_resized.png')
-    resized_img.save(screen_output_file)
+    resized_img.save('screen_output_resized.png')
+
+    # Inverted
+    image = Image.open('screen_output_resized.png')
+    inverted_image = ImageOps.invert(image)
+    inverted_image.save('screen_output_resized.png') 
 
     # Close the template file
     template.close()
-    write_to_screen(screen_output_file)
+    write_to_screen('screen_output_resized.png')
     sleep(600)
-    epd.init()  # Re-Initialize screen
