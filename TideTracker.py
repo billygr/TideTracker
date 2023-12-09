@@ -72,6 +72,15 @@ def sleep(sleep_seconds):
     time.sleep(sleep_seconds)  # Determines refresh rate on data
     epd.init()  # Re-Initialize screen
 
+def get_text_dimensions(text_string, font):
+    # https://stackoverflow.com/a/46220683/9263761
+    ascent, descent = font.getmetrics()
+
+    text_width = font.getmask(text_string).getbbox()[2]
+    text_height = font.getmask(text_string).getbbox()[3] + descent
+
+    return (text_width, text_height)
+
 # define function for writing image
 def write_to_screen(image):
     print('Writing to screen.')  # for debugging
@@ -329,7 +338,8 @@ while True:
     draw.text((125, 10), LOCATION, font=font35, fill=black)
 
     # Center current weather report
-    w, h = draw.textsize(string_report, font=font20)
+    draw.textbbox((0, 0), string_report, font=font20)
+    w, h = get_text_dimensions(string_report, font20)
     if w > 250:
         string_report = 'Now:\n' + report.title()
 
@@ -363,7 +373,8 @@ while True:
     # Next Next Day Forcast
     # Center day of week
     nx_nx_day_of_week = (now + dt.timedelta(days=2)).strftime('%A')
-    w, h = draw.textsize(nx_nx_day_of_week, font=font22)
+    draw.textbbox((0, 0), nx_nx_day_of_week, font=font22)
+    w, h = get_text_dimensions(nx_nx_day_of_week, font22)
     center = int(700 - (w / 2))
     icon_file = nx_nx_icon + '.png'
     icon_image = Image.open(os.path.join(icondir, icon_file))
@@ -414,7 +425,8 @@ while True:
     template.paste(moon_image, (625, 265), moon_image)
     moon_image.close
     draw.text((640, 255), "Lunar Phase", font=font22, fill=black)
-    w, h = draw.textsize(current_phase_name, font=font15)
+    draw.textbbox((0, 0), current_phase_name, font=font15)
+    w, h = get_text_dimensions(current_phase_name, font15)
     center = int(700 - (w / 2))
     draw.text((center, 390), current_phase_name, font=font15, fill=black)
     draw.text((635, 420), string_sunrise, font=font20, fill=black)
@@ -423,13 +435,13 @@ while True:
     # Save the image template for display as PNG
     template.save('screen_output.png')
 
-    resized_img = template.resize((640,384), Image.ANTIALIAS)
+    resized_img = template.resize((640,384), Image.LANCZOS)
     resized_img.save('screen_output_resized.png')
 
     # Inverted
-    image = Image.open('screen_output_resized.png')
-    inverted_image = ImageOps.invert(image)
-    inverted_image.save('screen_output_resized.png') 
+    #image = Image.open('screen_output_resized.png')
+    #inverted_image = ImageOps.invert(image)
+    #inverted_image.save('screen_output_resized.png')
 
     # Close the template file
     template.close()
