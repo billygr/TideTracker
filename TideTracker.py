@@ -150,8 +150,9 @@ def getWeather(URL):
         data = response.json()
         # Close the connection
         response.close()
-        with open('data.txt', 'w') as outfile:
-            json.dump(data, outfile)
+     # use it only if you want to debug the data from open weather
+      # with open('data.txt', 'w') as outfile:
+      #    json.dump(data, outfile)
 
         return data
 
