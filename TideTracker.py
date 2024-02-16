@@ -85,11 +85,13 @@ def get_text_dimensions(text_string, font):
 def write_to_screen(image):
     print('Writing to screen.')  # for debugging
 
-    # Disaply a black image then a white then the actual to prevent burning
+    # Display a black image then a white then the actual to prevent burning
     h_image = Image.new('1', (epd.width, epd.height), black)
+    print("Writing a black image")
     epd.display(epd.getbuffer(h_image))
 
     h_image = Image.new('1', (epd.width, epd.height), white)
+    print("Writing a white image")
     epd.display(epd.getbuffer(h_image))
 
     # Create new blank image template matching screen resolution
