@@ -6,3 +6,7 @@ images/screen_output_resized.png
 .DS_Store
 .idea
 ***/__pycache__
+bin
+lib
+lib64
+pyvenv.cfg
