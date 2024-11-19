@@ -55,8 +55,8 @@ UNITS = config.units
 TIMEZONE = config.timezone
 
 # Create URL for API call
-BASE_URL = 'http://api.openweathermap.org/data/2.5/onecall?'
-URL = BASE_URL + 'lat=' + LATITUDE + '&lon=' + LONGITUDE + '&units=' + UNITS + '&appid=' + API_KEY
+BASE_URL = 'https://api.pirateweather.net/forecast/'
+URL = BASE_URL + API_KEY + '/' + LATITUDE + ',' + LONGITUDE + '?exclude=hourly,minutely'
 
 '''
 ****************************************************************
@@ -136,9 +136,9 @@ def getWeather(URL):
     while error_connect == True:
         try:
             # HTTP request
-            print('Attempting to connect to OWM.')
+            print('Attempting to connect to Pirate Weather.')
             response = requests.get(URL)
-            print('Connection to OWM successful.')
+            print('Connection to Pirate Weather successful.')
             error_connect = None
         except:
             # Call function to display connection error
@@ -147,14 +147,14 @@ def getWeather(URL):
 
     # Check status of code request
     if response.status_code == 200:
-        print('Connection to Open Weather successful.')
+        print('Connection to Pirate Weather successful.')
         # get data in jason format
         data = response.json()
         # Close the connection
         response.close()
      # use it only if you want to debug the data from open weather
-      # with open('data.txt', 'w') as outfile:
-      #    json.dump(data, outfile)
+        with open('data.txt', 'w') as outfile:
+         json.dump(data, outfile)
 
         return data
 
@@ -247,35 +247,35 @@ while True:
     # Get weather data
     data = getWeather(URL)
 
-    print("Retrieved weather data from OWM")
+    print("Retrieved weather data from PirateWeather")
     # get current dict block
-    current = data['current']
+    current = data['currently'] # Needs to catch the exception
     # get current
-    temp_current = current['temp']
+    temp_current = current['temperature']
     # get feels like
-    feels_like = current['feels_like']
+    #feels_like = current['feels_like']
+    feels_like = 0
     # get humidity
     humidity = current['humidity']
     # get pressure
     pressure = current['pressure']
     # get wind speed
-    wind = current['wind_speed']
+    wind = current['windSpeed']
     # get description
-    weather = current['weather']
-    report = weather[0]['description']
+    weather = current['summary']
+    #report = weather[0]['description']
     # get icon url
-    icon_code = weather[0]['icon']
+    icon_code = current['icon']
 
     # get daily dict block
     daily = data['daily']
     # get daily precip
-    daily_precip_float = daily[0]['pop']
+    daily_precip_float = daily['data'][0]['precipProbability']
     # format daily precip
     daily_precip_percent = daily_precip_float * 100
     # get min and max temp
-    daily_temp = daily[0]['temp']
-    temp_max = daily_temp['max']
-    temp_min = daily_temp['min']
+    temp_max = daily['data'][0]['temperatureHigh']
+    temp_min = daily['data'][0]['temperatureLow']
 
     # Set strings to be printed to screen
     string_location = LOCATION
@@ -283,26 +283,25 @@ while True:
     string_feels_like = 'Feels like: ' + format(feels_like, '.0f') + u'\N{DEGREE SIGN}C'
     string_humidity = 'Humidity: ' + str(humidity) + '%'
     string_wind = 'Wind: ' + format(wind, '.1f') + ' m/s'
-    string_report = 'Now: ' + report.title()
+    #string_report = 'Now: ' + report.title()
+    string_report = 'Now:'
     string_temp_max = 'High: ' + format(temp_max, '>.0f') + u'\N{DEGREE SIGN}C'
     string_temp_min = 'Low:  ' + format(temp_min, '>.0f') + u'\N{DEGREE SIGN}C'
     string_precip_percent = 'Precip: ' + str(format(daily_precip_percent, '.0f')) + '%'
 
     # get min and max temp
-    nx_daily_temp = daily[1]['temp']
-    nx_temp_max = nx_daily_temp['max']
-    nx_temp_min = nx_daily_temp['min']
+    nx_temp_max = daily['data'][1]['temperatureHigh']
+    nx_temp_min = daily['data'][1]['temperatureLow']
     # get daily precip
-    nx_daily_precip_float = daily[1]['pop']
+    nx_daily_precip_float = daily['data'][1]['precipProbability']
     # format daily precip
     nx_daily_precip_percent = nx_daily_precip_float * 100
 
     # get min and max temp
-    nx_nx_daily_temp = daily[2]['temp']
-    nx_nx_temp_max = nx_nx_daily_temp['max']
-    nx_nx_temp_min = nx_nx_daily_temp['min']
+    nx_nx_temp_max = daily['data'][2]['temperatureHigh']
+    nx_nx_temp_min = daily['data'][2]['temperatureHigh']
     # get daily precip
-    nx_nx_daily_precip_float = daily[2]['pop']
+    nx_nx_daily_precip_float = daily['data'][2]['precipProbability']
     # format daily precip
     nx_nx_daily_precip_percent = nx_nx_daily_precip_float * 100
 
@@ -310,15 +309,13 @@ while True:
     nx_day_high = 'High: ' + format(nx_temp_max, '>.0f') + u'\N{DEGREE SIGN}C'
     nx_day_low = 'Low: ' + format(nx_temp_min, '>.0f') + u'\N{DEGREE SIGN}C'
     nx_precip_percent = 'Precip: ' + str(format(nx_daily_precip_percent, '.0f')) + '%'
-    nx_weather_icon = daily[1]['weather']
-    nx_icon = nx_weather_icon[0]['icon']
+    nx_icon = daily['data'][1]['icon']
 
     # Overmorrow Forcast Strings
     nx_nx_day_high = 'High: ' + format(nx_nx_temp_max, '>.0f') + u'\N{DEGREE SIGN}C'
     nx_nx_day_low = 'Low: ' + format(nx_nx_temp_min, '>.0f') + u'\N{DEGREE SIGN}C'
     nx_nx_precip_percent = 'Precip: ' + str(format(nx_nx_daily_precip_percent, '.0f')) + '%'
-    nx_nx_weather_icon = daily[2]['weather']
-    nx_nx_icon = nx_nx_weather_icon[0]['icon']
+    nx_nx_icon = daily['data'][2]['icon']
 
     # Last updated time
     now = dt.datetime.now()
