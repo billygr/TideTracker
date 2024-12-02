@@ -45,7 +45,7 @@ Location specific info required
 LOCATION = config.location
 
 # For weather data
-# Create Account on openweathermap.com and get API key
+# Create Account on Pirate Weather and get API key
 API_KEY = config.api_key
 # Get LATITUDE and LONGITUDE of location
 LATITUDE = config.latitude
@@ -54,9 +54,11 @@ UNITS = config.units
 
 TIMEZONE = config.timezone
 
+INVERTED = config.inverted
+
 # Create URL for API call
 BASE_URL = 'https://api.pirateweather.net/forecast/'
-URL = BASE_URL + API_KEY + '/' + LATITUDE + ',' + LONGITUDE + '?exclude=hourly,minutely'
+URL = BASE_URL + API_KEY + '/' + LATITUDE + ',' + LONGITUDE + '?exclude=hourly,minutely&units=si'
 
 '''
 ****************************************************************
@@ -83,6 +85,8 @@ def get_text_dimensions(text_string, font):
 
 # define function for writing image
 def write_to_screen(image):
+    # To avoid burning the starting point of the display is power down
+    epd.init()
     print('Writing to screen.')  # for debugging
 
     # Display a black image then a white then the actual to prevent burning
@@ -109,6 +113,7 @@ def write_to_screen(image):
 
 # define function for displaying error
 def display_error(error_source):
+    epd.init()
     # Display an error
     print('Error in the', error_source, 'request.')
     # Initialize drawing
@@ -147,12 +152,12 @@ def getWeather(URL):
 
     # Check status of code request
     if response.status_code == 200:
-        print('Connection to Pirate Weather successful.')
+        print('Connection to Pirate Weather successful HTTP 200.')
         # get data in jason format
         data = response.json()
         # Close the connection
         response.close()
-     # use it only if you want to debug the data from open weather
+     # use it only if you want to debug the data from Pirate Weather
         with open('data.txt', 'w') as outfile:
          json.dump(data, outfile)
 
@@ -240,30 +245,27 @@ print('Initializing and clearing screen.')
 epd = epd7in5.EPD()  # Create object for display functions
 epd.init() # Initialize e-Paper or wakeup e-Paper from sleep mode
 epd.Clear()
+epd.sleep()  # Put screen to sleep in case something fails on the below, the device will be powered on otherwise
 
-# Find a way to put screen to sleep to prevent damage in case the below code failes (happened and it burned the display)
+# Find a way to put screen to sleep to prevent damage in case the below code failes (happened and it burned the display) => FIXED above
 while True:
-    # The display is on and powered !!!
     # Get weather data
     data = getWeather(URL)
 
-    print("Retrieved weather data from PirateWeather")
+    print("Retrieved weather data from Pirate Weather")
     # get current dict block
-    current = data['currently'] # Needs to catch the exception
+    current = data['currently'] # FIXME Needs to catch the exception
     # get current
     temp_current = current['temperature']
-    # get feels like
-    #feels_like = current['feels_like']
-    feels_like = 0
     # get humidity
-    humidity = current['humidity']
+    humidity = round(current['humidity'] * 100,2)
     # get pressure
     pressure = current['pressure']
     # get wind speed
     wind = current['windSpeed']
     # get description
-    weather = current['summary']
-    #report = weather[0]['description']
+    #weather = current['summary']
+    report = current['summary']
     # get icon url
     icon_code = current['icon']
 
@@ -280,11 +282,9 @@ while True:
     # Set strings to be printed to screen
     string_location = LOCATION
     string_temp_current = format(temp_current, '.0f') + u'\N{DEGREE SIGN}C'
-    string_feels_like = 'Feels like: ' + format(feels_like, '.0f') + u'\N{DEGREE SIGN}C'
     string_humidity = 'Humidity: ' + str(humidity) + '%'
     string_wind = 'Wind: ' + format(wind, '.1f') + ' m/s'
-    #string_report = 'Now: ' + report.title()
-    string_report = 'Now:'
+    string_report = 'Now: ' + report
     string_temp_max = 'High: ' + format(temp_max, '>.0f') + u'\N{DEGREE SIGN}C'
     string_temp_min = 'Low:  ' + format(temp_min, '>.0f') + u'\N{DEGREE SIGN}C'
     string_precip_percent = 'Precip: ' + str(format(daily_precip_percent, '.0f')) + '%'
@@ -349,7 +349,6 @@ while True:
     # Data
     draw.text((250, 55), string_temp_current, font=font35, fill=black)
     y = 100
-    draw.text((250, y), string_feels_like, font=font15, fill=black)
     draw.text((250, y + 20), string_humidity, font=font15, fill=black)
     draw.text((250, y + 40), string_wind, font=font15, fill=black)
     draw.text((250, y + 60), string_precip_percent, font=font15, fill=black)
@@ -438,10 +437,11 @@ while True:
     resized_img = template.resize((640,384), Image.LANCZOS)
     resized_img.save('screen_output_resized.png')
 
-    # Inverted
-    #image = Image.open('screen_output_resized.png')
-    #inverted_image = ImageOps.invert(image)
-    #inverted_image.save('screen_output_resized.png')
+    if INVERTED == 1:
+      # Inverted
+      image = Image.open('screen_output_resized.png')
+      inverted_image = ImageOps.invert(image)
+      inverted_image.save('screen_output_resized.png')
 
     # Close the template file
     template.close()
