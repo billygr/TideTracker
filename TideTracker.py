@@ -160,6 +160,7 @@ def getWeather(URL):
      # use it only if you want to debug the data from Pirate Weather
         with open('data.txt', 'w') as outfile:
          json.dump(data, outfile)
+         outfile.close()
 
         return data
 
@@ -250,11 +251,19 @@ epd.sleep()  # Put screen to sleep in case something fails on the below, the dev
 # Find a way to put screen to sleep to prevent damage in case the below code failes (happened and it burned the display) => FIXED above
 while True:
     # Get weather data
+    print("Retrieved weather data from Pirate Weather")
     data = getWeather(URL)
 
-    print("Retrieved weather data from Pirate Weather")
+    if data is None:
+        print("Error: data is None")
+        sys.exit(1)
+
     # get current dict block
-    current = data['currently'] # FIXME Needs to catch the exception
+    try:
+      current = data['currently'] # FIXME Needs to catch the exception
+    except KeyError:
+      print ("Exception catched")
+      sys.exit(1)
     # get current
     temp_current = current['temperature']
     # get humidity
