@@ -72,7 +72,6 @@ Functions and defined variables
 def sleep(sleep_seconds):
     print('Sleeping for ' + str(sleep_seconds) + ' seconds.')
     time.sleep(sleep_seconds)  # Determines refresh rate on data
-    epd.init()  # Re-Initialize screen
 
 def get_text_dimensions(text_string, font):
     # https://stackoverflow.com/a/46220683/9263761
@@ -129,6 +128,12 @@ def display_error(error_source):
     error_image.save(error_image_file)
     # Close error image
     error_image.close()
+    if INVERTED == 1:
+      image = Image.open('error.png')
+      inverted_image = ImageOps.invert(image)
+      inverted_image.save('error.png')
+      image.close()
+      inverted_image.close()
     # Write error to screen
     write_to_screen(error_image_file)
     sleep(30)
