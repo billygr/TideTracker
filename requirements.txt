@@ -1,4 +1,5 @@
-noaa_coops
-matplotlib
-numpy
-Astral
+requests
+astral
+spidev
+RPi.GPIO
+pillow
